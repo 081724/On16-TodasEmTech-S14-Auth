@@ -13,9 +13,22 @@
  * const team = req.body.team
  */
 const CoachModel = require('../models/coachModel')
+const SECRET = process.env.SECRET
+const jwt = require("jsonwebtoken")
+
 const createCoach = async (req, res) => {
    try {
-      const { name, team, region, age, gender } = req.body
+     const authHeader = req.get("authorization")
+     if (!authHeader) {
+       return res.status(401).send("cade o header?")
+     }
+     const token = authHeader.split(" ")[1]
+
+     await jwt.verify(token,SECRET, async function(erro){
+       if(erro){
+         return req.status(403).send("nao vai entrar na api nao autorizada")
+       }
+const { name, team, region, age, gender } = req.body
 
       const newCoach = new CoachModel({
         name, team, region, age, gender
@@ -24,6 +37,8 @@ const createCoach = async (req, res) => {
       const savedCoach = await newCoach.save()
 
       res.status(201).json(savedCoach)
+     })
+      
    } catch (error) {
      console.error(error)
      res.status(500).json({ message: error.message })
